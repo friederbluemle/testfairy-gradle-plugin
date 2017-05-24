@@ -10,8 +10,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
-public class SdkEnvironment
-{
+public class SdkEnvironment {
 	private String sdkDirectory;
 
 	public SdkEnvironment(String sdkDirectory) {

@@ -13,8 +13,8 @@ A typical TestFairy Gradle Plugin installation takes less than 60 seconds. Insta
  1. Add the TestFairy Maven repository:
 
         maven { url 'https://www.testfairy.com/maven' }
-    
- 2. Add plugin dependency: 
+
+ 2. Add plugin dependency:
 
         classpath 'com.testfairy.plugins.gradle:testfairy:1.+'
 
@@ -38,14 +38,14 @@ For convenience, here is a snippet of a complete ***build.gradle*** file, includ
             mavenCentral()
             maven { url 'https://www.testfairy.com/maven' }
         }
-    
+
         dependencies {
             classpath 'com.testfairy.plugins.gradle:testfairy:1.+'
         }
     }
-    
+
     apply plugin: 'testfairy'
-    
+
     android {
         testfairyConfig {
             apiKey "1234567890abcdef"
@@ -61,11 +61,11 @@ With the plugin installed, a set of new tasks, prefixed "*testfairy*" will be ad
 For example: to upload a debug build, run the following from terminal:
 
     gradlew testfairyDebug
-    
+
 Optionally, you can add a *changelog* to this build. This changelog will appear in your build notes and as a default message when inviting testers. For example:
 
     gradlew -PtestfairyChangelog="Fixed all bugs" testfairyDebug
-    
+
 Additional Parameters
 ---------------------
 
@@ -87,7 +87,7 @@ By default, the Gradle plugin will record all metrics, of highest quality video 
             uploadProguardMapping true
         }
     }
-    
+
 The example above will make sure TestFairy records a low quality video, at a frame every 2 seconds, only if wifi is available. Max session duration for video is 15 minutes, and only cpu, memory, network and logcat metrics are recorded. And watermark will be added to the icon to distinguish TestFairy builds. Previous builds will be automatically updated to latest versions and recorded sessions are capped at 1 hour. Some testers will be invited automatically, and notifications will be sent by email.
 
 For more details about parameter values, see [this](http://docs.testfairy.com/Upload_API.html).
@@ -104,7 +104,7 @@ This plugin is also Android Studio and Intellij-friendly. To upload builds direc
 
 1. Open "Edit Configuration..." dialog
 
- ![Edit Configuration screenshot][1] 
+ ![Edit Configuration screenshot][1]
 
 2. Add a new Gradle configuration, use task "*testfairyDebug*" or another, depending on your build type.
 
@@ -121,8 +121,7 @@ Changelog
 Bugs
 ----
 
-Please send bug reports to support@testfairy.com 
+Please send bug reports to support@testfairy.com
 
 [1]: https://raw.githubusercontent.com/testfairy/testfairy-gradle-plugin/master/docs/images/preview-open-edit-configurations.png
 [2]: https://raw.githubusercontent.com/testfairy/testfairy-gradle-plugin/master/docs/images/preview-add-gradle-task.png
-

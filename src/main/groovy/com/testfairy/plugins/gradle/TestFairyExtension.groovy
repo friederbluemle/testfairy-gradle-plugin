@@ -3,7 +3,6 @@ package com.testfairy.plugins.gradle
 import org.gradle.api.*
 
 class TestFairyExtension {
-
 	private String apiKey
 	private Boolean iconWatermark = false
 	private String video = "on"
@@ -21,7 +20,7 @@ class TestFairyExtension {
 	private String serverEndpoint = "https://upload.testfairy.com"
 
 	TestFairyExtension(Project project) {
-	}	
+	}
 
 	void apiKey(String value) {
 		this.apiKey = value
@@ -127,12 +126,11 @@ class TestFairyExtension {
 		return recordOnBackground;
 	}
 
-    void uploadProguardMapping(Boolean value){
-        this.uploadProguardMapping = value;
-    }
+	void uploadProguardMapping(Boolean value) {
+		this.uploadProguardMapping = value;
+	}
 
-    Boolean getUploadProguardMapping(){
-        return uploadProguardMapping;
-    }
+	Boolean getUploadProguardMapping(){
+		return uploadProguardMapping;
+	}
 }
-

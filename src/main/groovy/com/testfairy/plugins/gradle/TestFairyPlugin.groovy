@@ -18,7 +18,6 @@ import org.apache.commons.compress.archivers.zip.*
 import groovy.json.JsonSlurper
 
 class TestFairyPlugin implements Plugin<Project> {
-
 	private String apiKey
 
 	/// path to Java's jarsigner
@@ -28,7 +27,6 @@ class TestFairyPlugin implements Plugin<Project> {
 	private String zipAlignPath
 
 	private void configureJavaTools(Project project) {
-
 		String sdkDirectory = getSdkDirectory(project)
 		SdkEnvironment env = new SdkEnvironment(sdkDirectory)
 
@@ -64,7 +62,6 @@ class TestFairyPlugin implements Plugin<Project> {
 
 	@Override
 	void apply(Project project) {
-
 		// create an extension where the apiKey and such settings reside
 		def extension = project.extensions.create("testfairyConfig", TestFairyExtension, project)
 
@@ -181,7 +178,6 @@ class TestFairyPlugin implements Plugin<Project> {
 	}
 
 	private String getMappingFileCompat(variant) {
-
 		if (variant.metaClass.respondsTo(variant, "getMappingFile")) {
 			// getMappingFile was added in Android Plugin 0.13
 			return variant.getMappingFile().toString()
@@ -233,7 +229,6 @@ class TestFairyPlugin implements Plugin<Project> {
 	 * @return boolean
 	 */
 	private boolean isApkSigned(String apkFilename) {
-
 		List<String> filenames = getApkFiles(apkFilename)
 		for (String f: filenames) {
 			if (f.startsWith("META-INF/") && f.endsWith("SF")) {
@@ -321,11 +316,11 @@ class TestFairyPlugin implements Plugin<Project> {
 			entity.addPart('changelog', new StringBody(changelog))
 		}
 
-		if(project.hasProperty("testfairyUploadedBy")){
+		if (project.hasProperty("testfairyUploadedBy")) {
 			via = " via " + project.property("testfairyUploadedBy")
 		}
 
-		if(!project.hasProperty("instrumentation")){
+		if (!project.hasProperty("instrumentation")) {
 			// instrumentation off by default
 			entity.addPart('instrumentation', new StringBody("off"))
 		} else {
@@ -363,8 +358,7 @@ class TestFairyPlugin implements Plugin<Project> {
 		// add auto-update "on" or "off"
 		entity.addPart('auto-update', new StringBody(extension.getAutoUpdate() ? "on" : "off"))
 
-
-		if(project.hasProperty("testfairyUploadedBy")){
+		if (project.hasProperty("testfairyUploadedBy")) {
 			via = " via " + project.property("testfairyUploadedBy")
 		}
 
@@ -433,7 +427,6 @@ class TestFairyPlugin implements Plugin<Project> {
 	 * @param outputFilename
 	 */
 	void removeSignature(String apkFilename, String outFilename) {
-
 		ZipArchiveInputStream zais = new ZipArchiveInputStream(new FileInputStream(apkFilename))
 		ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(new FileOutputStream(outFilename))
 		while (true) {
@@ -471,7 +464,6 @@ class TestFairyPlugin implements Plugin<Project> {
 	 * @param sc
 	 */
 	void resignApk(String apkFilename, sc) {
-
 		// use a temporary file in the same directory as apkFilename
 		String outFilename = apkFilename + ".temp"
 
@@ -499,7 +491,6 @@ class TestFairyPlugin implements Plugin<Project> {
 		if (proc.exitValue()) {
 			throw new GradleException("Could not jarsign ${apkFilename}, used this command:\n${command}")
 		}
-
 	}
 
 	/**
@@ -534,4 +525,3 @@ class TestFairyPlugin implements Plugin<Project> {
 		}
 	}
 }
-
