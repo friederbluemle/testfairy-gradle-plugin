@@ -1,3 +1,5 @@
 .gradle
 vendor
 composer.lock
+build/
+repo/
