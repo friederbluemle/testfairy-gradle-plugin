@@ -76,16 +76,14 @@ class TestFairyPlugin implements Plugin<Project> {
 				tasks.whenTaskAdded { task ->
 
 					project.("android").applicationVariants.all { variant ->
+						def variantName = variant.name
 
 						// locate packageRelease and packageDebug tasks
-						def expectingTask = "package${variant.name.capitalize()}".toString()
+						def expectingTask = "package${variantName.capitalize()}".toString()
 						if (expectingTask.equals(task.name)) {
-
-							def variantName = variant.name
 
 							// create new task with name such as testfairyRelease and testfairyDebug
 							def newTaskName = "testfairy${variantName.capitalize()}"
-
 							project.task(newTaskName) << {
 
 								assertValidApiKey(extension)
@@ -94,7 +92,15 @@ class TestFairyPlugin implements Plugin<Project> {
 								String serverEndpoint = extension.getServerEndpoint()
 
 								// use outputFile from packageApp task
+								project.logger.info("DEBUG: " + task.dump())
+								//task.properties.each { println "$it.key -> $it.value" }
 								String apkFilename = task.outputFile.toString()
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
+								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
 								project.logger.info("Instrumenting ${apkFilename} using apiKey ${apiKey} and server ${serverEndpoint}")
 
 								def tempDir = task.temporaryDir.getAbsolutePath()

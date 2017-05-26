@@ -25,5 +25,5 @@ android:
     - android-19
 
 script:
-  - bash gradlew uploadArchives
+  - ./gradlew uploadArchives
   - ./vendor/bin/phpunit

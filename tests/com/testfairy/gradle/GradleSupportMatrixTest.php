@@ -40,7 +40,7 @@
 			$lines = file($filename, FILE_IGNORE_NEW_LINES);
 			for ($i=0; $i<count($lines); $i++) {
 				if (substr($lines[$i], 0, strlen("distributionUrl=")) == "distributionUrl=") {
-					$lines[$i] = "distributionUrl=http\\://services.gradle.org/distributions/gradle-" . $wrapperVersion . "-all.zip";
+					$lines[$i] = "distributionUrl=https\\://services.gradle.org/distributions/gradle-" . $wrapperVersion . "-all.zip";
 				}
 			}
 
@@ -51,64 +51,89 @@
 		 * Automagically add testfairy gradle plugin to the gradle build script.
 		 *
 		 * @param $filename   string	 path for build.gradle file being inspected
-		 * @param $useMinify  boolean	should render script with 'minifyEnabled' instead of 'runProguard'?
 		 * @param $keystore   string	 path to keystore file used for signing app
 		 */
-		private function fixupBuildGradle($filename, $useMinify, $keystore) {
+		private function fixupBuildGradle($filename, $keystore) {
 			$lines = file($filename, FILE_IGNORE_NEW_LINES);
 			$out = array();
 			foreach ($lines as $line) {
-				if (preg_match("/^\\s*runProguard false/", $line)) {
+				/*if (preg_match("/^\\s*runProguard false/", $line)) {
 					if ($useMinify) {
 						$line = str_replace("runProguard false", "minifyEnabled true", $line);
 					} else {
 						$line = str_replace("runProguard false", "runProguard true", $line);
 					}
+				}*/
+
+				if (strpos($line, "minifyEnabled false") !== FALSE) {
+					$line = str_replace("minifyEnabled false", "minifyEnabled true", $line);
 				}
 
 				$out[] = $line;
-
-				if (strpos($line, "repositories {") !== FALSE) {
-					//$out[] = "		maven { url 'https://www.testfairy.com/maven' }";
-					$out[] = "		maven { url 'file://" . $this->_projectDir . "/repo' }";
-				}
-
-				if (strpos($line, "dependencies {") !== FALSE) {
-					$out[] = "		classpath 'com.testfairy.plugins.gradle:testfairy:1.+'";
-				}
 
 				if (strpos($line, "apply plugin") !== FALSE) {
 					$out[] = "apply plugin: 'testfairy'";
 				}
 
-				if (strpos($line, "android {") !== FALSE) {
-					$out[] = "signingConfigs {";
-					$out[] = "  release {";
-					$out[] = "	storeFile file(\"$keystore\")";
-					$out[] = "	storePassword \"swordfish\"";
-					$out[] = "	keyAlias \"android_app\"";
-					$out[] = "	keyPassword \"swordfish\"";
-					$out[] = "  }";
-					$out[] = "}";
+				if (strpos($line, "minifyEnabled") !== FALSE) {
+					$out[] = "            signingConfig signingConfigs.release";
+					$out[] = "            zipAlignEnabled true";
+				}
 
-					$out[] = "buildTypes {";
-					$out[] = "  release {";
-					$out[] = "	signingConfig signingConfigs.release";
+				if (strpos($line, "testInstrumentationRunner") !== FALSE) {
+					$out[] = "    }";
+					$out[] = "    signingConfigs {";
+					$out[] = "        release {";
+					$out[] = "            storeFile rootProject.file(\"$keystore\")";
+					$out[] = "            storePassword \"swordfish\"";
+					$out[] = "            keyAlias \"android_app\"";
+					$out[] = "            keyPassword \"swordfish\"";
+					$out[] = "        }";
+					$out[] = "    }";
+
+					/*$out[] = "    buildTypes {";
+					$out[] = "        release {";
 					//runProguard true
 					//proguardFile getDefaultProguardFile('proguard-android.txt')
-					$out[] = "  }";
-					$out[] = "}";
+					$out[] = "        }";
+					$out[] = "    }";*/
 
-					$out[] = "	testfairyConfig {";
-					//$out[] = "	   serverEndpoint \"http://" . $this->_tested_server . "\"";
-					$out[] = "	   apiKey \"" . $this->_apiKey . "\"";
-					$out[] = "	   uploadProguardMapping true";
-					$out[] = "	}";
+					$out[] = "    testfairyConfig {";
+					//$out[] = "        serverEndpoint \"http://" . $this->_tested_server . "\"";
+					$out[] = "        apiKey \"" . $this->_apiKey . "\"";
+					$out[] = "        uploadProguardMapping true";
 				}
 			}
 
-			$lines = implode("\n", $out);
-			file_put_contents($filename, $lines);
+			file_put_contents($filename, implode("\n", $out) . "\n");
+		}
+
+		/**
+		 * Automagically add testfairy gradle plugin to the gradle build script.
+		 *
+		 * @param $filename   string	 path for build.gradle file being inspected
+		 */
+		private function fixupRootBuildGradle($filename, $plugin) {
+			$lines = file($filename, FILE_IGNORE_NEW_LINES);
+			$out = array();
+			foreach ($lines as $line) {
+				if (strpos($line, "com.android.tools.build:gradle") !== FALSE) {
+					$line = str_replace("2.3.2", $plugin, $line);
+				}
+
+				$out[] = $line;
+
+				if (strpos($line, "repositories {") !== FALSE) {
+					//$out[] = "        maven { url 'https://www.testfairy.com/maven' }";
+					$out[] = "        maven { url 'file://" . $this->_projectDir . "/repo' }";
+				}
+
+				if (strpos($line, "dependencies {") !== FALSE) {
+					$out[] = "        classpath 'com.testfairy.plugins.gradle:testfairy:1.+'";
+				}
+			}
+
+			file_put_contents($filename, implode("\n", $out) . "\n");
 		}
 
 		private function getAndroidHome() {
@@ -119,7 +144,7 @@
 
 		private function assertZipaligned($filename) {
 			$home = $this->getAndroidHome();
-			exec("${home}/build-tools/19.1.0/zipalign -c 4 '$filename'", $output, $retval);
+			exec("${home}/build-tools/25.0.3/zipalign -c 4 '$filename'", $output, $retval);
 			$this->assertEquals(0, $retval, "APK file was not zipaligned");
 		}
 
@@ -130,34 +155,35 @@
 		}
 
 		private function tryGradle($wrapper, $plugin) {
-			$android = $this->getAndroidHome() . "/tools/android";
+			//$android = $this->getAndroidHome() . "/tools/android";
+			$time = time();
 
-			// create an empty project first
-			$TEST_DIR="/tmp/gradle-test";
-			system("rm -rf $TEST_DIR");
+			// create an empty directory first
+			$TEST_DIR="/tmp/gradle-test-$time";
+//			system("rm -rf $TEST_DIR");
 			@mkdir($TEST_DIR);
-			exec("$android create project -v $plugin -n GradleTest -t android-8 -p $TEST_DIR -g -k com.testfairy.tests.gradle -a MainActivity", $output);
+			//exec("$android create project -v $plugin -n GradleTest -t android-8 -p $TEST_DIR -g -k com.testfairy.tests.gradle -a MainActivity", $output);
+			exec("cp -a gradle-test/* $TEST_DIR");
 
 			// create a certificate for this
-			$time = time();
 			$dname = "CN=${time},OU=organizational_unit,O=organization,L=locality,S=state,C=US";
 			system("keytool -genkey -keystore ${TEST_DIR}/random.keystore -alias android_app -keyalg RSA -keysize 2048 -validity 3650 -keypass 'swordfish' -storepass 'swordfish' -dname '$dname' 2>&1");
 
-			$useMinify = ($plugin >= "0.14");
 			$this->changeDistributionUrl("$TEST_DIR/gradle/wrapper/gradle-wrapper.properties", $wrapper);
-			$this->fixupBuildGradle("$TEST_DIR/build.gradle", $useMinify, "random.keystore");
+			$this->fixupRootBuildGradle("$TEST_DIR/build.gradle", $plugin);
+			$this->fixupBuildGradle("$TEST_DIR/app/build.gradle", "random.keystore");
 
 			// check plugin loaded successfully
-			exec("cd $TEST_DIR; bash gradlew tasks", $output);
+			exec("cd $TEST_DIR; ./gradlew tasks", $output);
 			$this->assertContains("testfairyRelease - Uploads the Release build to TestFairy", $output);
 			$this->assertContains("testfairyDebug - Uploads the Debug build to TestFairy", $output);
 
 			// try testfairyRelease task
 			$output = array();
-			exec("cd $TEST_DIR; bash gradlew testfairyRelease --debug", $output);
+			exec("cd $TEST_DIR; ./gradlew testfairyRelease --debug", $output);
 
 			// make sure it uploaded successfully to testfairy
-			$found = null;
+			$found = false;
 			foreach ($output as $line) {
 				if (preg_match("/Successfully uploaded to TestFairy, build is available at:/", $line)) {
 					$found = true;
@@ -165,7 +191,7 @@
 				}
 			}
 
-			$this->assertNotNull($found, "Compilation failed");
+			$this->assertTrue($found, "Compilation failed");
 
 			$signedUrl = null;
 			foreach ($output as $line) {
@@ -188,7 +214,7 @@
 		}
 
 		// Gradle Wrapper 1.10
-		public function testGradleWrapper_1_10_AndroidPlugin_0_10_0() { }
+		/*public function testGradleWrapper_1_10_AndroidPlugin_0_10_0() { }
 		public function testGradleWrapper_1_10_AndroidPlugin_0_10_1() { }
 		public function testGradleWrapper_1_10_AndroidPlugin_0_10_2() { }
 		public function testGradleWrapper_1_10_AndroidPlugin_0_10_4() { }
@@ -238,12 +264,16 @@
 		public function testGradleWrapper_2_2_AndroidPlugin_1_0_1() { }
 
 		// Gradle Wrapper 2.14
-		public function testGradleWrapper_2_14_AndroidPlugin_1_5_0() { }
+		public function testGradleWrapper_2_14_AndroidPlugin_1_5_0() { }*/
 
 		// Gradle Wrapper 2.14.1
-		public function testGradleWrapper_2_14_1_AndroidPlugin_2_1_3() { }
+		//public function testGradleWrapper_2_14_1_AndroidPlugin_2_1_3() { }
+		public function testGradleWrapper_2_14_1_AndroidPlugin_2_2_0() { }
 
-		// Gradle Wrapper 3.2.1 - not supported (yet)
-		// public function testGradleWrapper_3_2_1_AndroidPlugin_2_1_3() { }
+		// Gradle Wrapper 3.2.1
+		/*public function testGradleWrapper_3_2_1_AndroidPlugin_2_1_3() { }
+
+		public function testGradleWrapper_3_3_AndroidPlugin_2_3_0() { }
+		public function testGradleWrapper_3_3_AndroidPlugin_2_3_2() { }*/
 	}
 ?>
